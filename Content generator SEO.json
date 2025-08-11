@@ -1,0 +1,1645 @@
+{
+  "name": "Content generator SEO",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [-560, 1328],
+      "id": "c9239290-4206-4df1-8593-0ac283752001",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "mWJH6jVsPopSZNDZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/runs?token=apify_api_[YOUR_APIFY_KEY]&waitForFinish=60",
+        "sendBody": true,
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [{}]
+        },
+        "jsonBody": "={\n    \"excludePinnedPosts\": false,\n    \"hashtags\": {{JSON.stringify( $json.hashtags)}} ,\n    \"proxyCountryCode\": \"None\",\n    \"resultsPerPage\": 2,\n    \"scrapeRelatedVideos\": false,\n    \"shouldDownloadAvatars\": false,\n    \"shouldDownloadCovers\": false,\n    \"shouldDownloadMusicCovers\": false,\n    \"shouldDownloadSlideshowImages\": false,\n    \"shouldDownloadSubtitles\":false,\n    \"shouldDownloadVideos\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [32, 1152],
+      "id": "1a935e71-0980-4e00-8487-2ed6f6606d5e",
+      "name": "search tiktok"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/clockworks~tiktok-scraper/runs/last/dataset/items?token=apify_api_[YOUR_APIFY_KEY]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [208, 1296],
+      "id": "f5b3ce58-1b90-4b48-9d57-cd79c4ee3208",
+      "name": "get tiktok results",
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('On form submission').all()[0].json[\"what is the domain you want to search for?\"] }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an intelligent AI assistant who generates hashtags which are related to the user prompt. These hashtags will be used to search for videos on tiktok. the videos will then be used to track profiles that are making videos related to the domain in user prompt. your hashtags should lead to videos related to content creators and not sellers and other organizations.\nGenerate 5 hashtags related to user prompt.\n##Output format\nMake a JSON list of the Hashtags\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [-512, 1152],
+      "id": "74803d16-e351-43f9-8675-095a12ff6e8f",
+      "name": "generate hashtags"
+    },
+    {
+      "parameters": {
+        "content": "## generate hashtags using AI \nuse gemini to generate 5 hashtags that include product and ecommerce platform information",
+        "height": 432,
+        "width": 432,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-544, 1008],
+      "typeVersion": 1,
+      "id": "9dfbe831-4e3b-4591-9e26-f18a9579850e",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "type",
+              "value": "channel"
+            },
+            {
+              "name": "maxResults",
+              "value": "4"
+            },
+            {
+              "name": "key",
+              "value": "[YOUR_YOUTUBE_KEY_HERE]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2656, 416],
+      "id": "d6f00bb1-dbfd-4e7e-9d15-3aed46be9e28",
+      "name": "search youtube"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the array from the first item\nconst queries = items[0].json.output;\n\n// Return each query as a separate item\nreturn queries.map(q => ({ json: q }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2080, 304],
+      "id": "ac19046a-aed5-4bdd-ba75-f29630a96659",
+      "name": "format output"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('On form submission').all()[0].json[\"what is the domain you want to search for?\"] }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an intelligent AI assistant who generates search queries which are related to the user prompt. These search queries will be used to search for channels on youtube that are making videos related to the domain in user prompt. your search query should lead to channels related to content creators and not sellers and other organizations.\nGenerate 3 search queries related to user prompt.\n##Output format\nMake a JSON list of the 3 queries\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [1744, 304],
+      "id": "d4de412f-ca60-4a49-8bcf-0e80b6778e7b",
+      "name": "generate search query"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [2480, 304],
+      "id": "b3178b48-fd86-4573-8042-8026b99d495b",
+      "name": "Loop Over search queries"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1728, 496],
+      "id": "190f0278-b49b-4f7e-9466-20135aa5ff33",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "mWJH6jVsPopSZNDZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Generate search queries for youtube\nUses gemini to generate three full text search queries that include product details",
+        "height": 512,
+        "width": 512,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1696, 144],
+      "typeVersion": 1,
+      "id": "8514edf5-474f-41ea-9f62-06b4e055cb19",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawText = $input.first().json.text\n\n// Remove code block markers (```json ... ```) and whitespace\nconst cleaned = rawText\n  .replace(/```json|```/g, '')  // remove triple backticks\n  .trim();\n\nlet hashtags = [];\n\ntry {\n  hashtags = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\"Failed to parse hashtags: \" + error.message);\n}\n\nreturn [\n  {\n    json: {\n      hashtags\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-208, 1152],
+      "id": "dc57b16b-49da-4b55-8bf5-84ffd5c85ef7",
+      "name": "format output1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [352, 1136],
+      "id": "7a514eec-463c-487b-98e9-18ff96c80650",
+      "name": "Aggregate search results1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the 'data' array from the input\nconst profiles = items[0].json.data;\n\n// Use a Set to track unique profile URLs\nconst seen = new Set();\n\n// Filter and map to keep only unique profile URLs\nconst uniqueUrls = profiles\n  .map(item => item.authorMeta?.profileUrl)\n  .filter(url => {\n    if (!url || seen.has(url)) return false;\n    seen.add(url);\n    return true;\n  });\n\n// Return as n8n items\nreturn uniqueUrls.map(url => ({\n  json: { profileUrl: url }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [496, 1136],
+      "id": "a2635875-047f-40cd-bb5c-9913b0236d54",
+      "name": "extract profile urls"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/thenetaji~tiktok-profile-scraper/runs?token=apify_api_[YOUR_APIFY_KEY]&waitForFinish=60",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"proxy\": {\n        \"useApifyProxy\": true,\n        \"apifyProxyGroups\": [\n            \"RESIDENTIAL\"\n        ]\n    },\n    \"urls\": [\n        {\n            \"url\":  {{JSON.stringify( $json.profileUrl)}} ,\n            \"method\": \"GET\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1168, 1120],
+      "id": "2a004857-8b60-4663-abdb-06a1fd81a28c",
+      "name": "run profile actor"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/acts/thenetaji~tiktok-profile-scraper/runs/last/dataset/items?token=apify_api_[YOUR_APIFY_KEY]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1392, 1120],
+      "id": "f0f597c5-d0a4-47f4-9e13-0f1f9b96a373",
+      "name": "get profiles"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=name:{{ $json.name}}\nnickname: {{ $json.nickName }}\nbio signature:{{ $json.signature }}\nbio link: {{ $json.bioLink }}\nfans:{{ $json.fans }}\nfollower count:{{ $json.follows }}\nvideoCount:{{ $json.video }}\nprofileAge:{{ $json.profileAge }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=you are a helpful AI assistant who can distinguish content creaters from other social media users. The user prompt contains information about a tiktok profile. you need to decide if the person is a content creator or not. Then they can be sponsored to help advertise  a product.if the profile only sells a specific product, they can not be sponsored and hence they do not count as content creators. Don't generalise cryptic names as brand names, content generators can also have unusual names.\n##output format:\njson object with key named content creator and value being a boolean value that tells if the profile belongs to a content creator or not. another key named reason that gives short eplanation for the verdict"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name: \"audiophile_highend_audio\"\nnickName: \"Audiophile_HighEnd_Audio\"\nsignature: \"Audiophile HiEnd Sound Systems ❤️ Most Expensive World HiFi Audio Technologies\"\nbioLink: \"https://www.facebook.com/share/1DAg1WaRnq/?mibextid=wwXIfr\"     \nfans: 15210\nfollows: 1867\\\nvideo: 1009\nprofileAge: \"469 days\"   "
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=[   {     \"content_creator\": false,\"reason\":\"profile is named after a brand\"} ]"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name:\"rashnakutwaroo\" nickname:\"RASHNA\" bio signature:\"📧 Rashna.kutwaroo@yahoo.com\" bio link: {\n      \"link\": \"https://www.shopltk.com/explore/Rashna_Kutwaroo?utm_campaign=creator_shop_share_template_flow&utm_source=ioscreatorapp\",\n      \"risk\": 3\n    }fans:1300000 follower count:684 videoCount:2619 profileAge:\"2464 days\""
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=[\n  {\n    \"output\": {\n      \"content_creator\": true,\n      \"reason\": \"The profile has a personal name, a very high number of fans, and a large video count, indicating consistent content creation over a long period. The email in the bio suggests a willingness for collaborations, common for content creators.\"\n    }\n  }\n]\n"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name:\"bkfragrance1\" nickname:\"BKFragrance\"  bio signature:\"PR/Collaboration👇\\n📧 bkfragrance1@gmail.com\\nBarber Acc: @BarberKarl\" bio link:\n{\n\"link\": \n\"https://bks-decants.square.site/\",\n\"risk\": \n3\n}fans:28100 follower count:276 videoCount:159 profileAge:\"207 days\""
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=[   {     \"output\": {       \"content_creator\": true,       \"reason\": \"The profile explicitly states 'PR/Collaboration' and provides a contact email, indicating an interest in working with brands. The consistent video count (159 videos in 207 days) and a significant number of 'fans' (28100) suggest active content creation. While 'fragrance' is in the name, it implies a content niche (reviews, recommendations) rather than solely selling a specific product.\"     }   } ]"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [1872, 1120],
+      "id": "c1237b9f-4711-4dd3-8b38-4e32d808a665",
+      "name": "distinguish content creators"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1856, 1392],
+      "id": "b2df0082-66c7-4382-a5d1-1589fb79b6b7",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "mWJH6jVsPopSZNDZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"content_creator\": true,\n\t\"reason\":\"named after a brand\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [2080, 1360],
+      "id": "9191d9c7-7459-4270-9d10-20dccff03ed9",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[{\n\t\"query\": \"California\"\n},\n  {\n\t\"query\": \"California\"\n},\n  {\n\t\"query\": \"California\"\n}\n]\n\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [1952, 480],
+      "id": "b3d93571-a9ee-4b18-843f-a42e63118bef",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: search response with an \"items\" array\nconst items = $input.item.json.items;\n\n// Extract all channelIds from the search results\nconst channelIds = items\n  .filter(i => i.id?.kind === 'youtube#channel')\n  .map(i => i.id.channelId);\n\n// Join them into a comma-separated string\nconst idString = channelIds.join(',');\n\n// Output the formatted ID string\nreturn [\n  {\n    json: {\n      channelIdsCsv: idString\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2832, 416],
+      "id": "0b879b70-a891-4329-827c-a7eff4fce576",
+      "name": "extract channel IDs"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"content_creator\": true,\n\t\"reason\":\"named after a brand\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [4048, 624],
+      "id": "ac839b44-11dd-4bb8-b41e-2bfe463fe161",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [3792, 640],
+      "id": "e617960a-3893-4354-9107-4910b28762ac",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "mWJH6jVsPopSZNDZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [3392, 368],
+      "id": "22af7bfe-b226-4880-ae9d-5be53755055e",
+      "name": "loop over channels"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json.items; // This is the array of channels\n\nconst output = input.map(channel => {\n  const snippet = channel.snippet;\n  const stats = channel.statistics;\n\n  // Convert publishedAt to profile age in years\n  const publishedDate = new Date(snippet.publishedAt);\n  const now = new Date();\n  const ageInMs = now - publishedDate;\n  const ageInYears = ageInMs / (1000 * 60 * 60 * 24 * 365.25);\n  const profileAge = `${ageInYears.toFixed(1)} years`;\n\n  return {\n    json: {\n      channelId: channel.id,\n      name: snippet.title,\n      description: snippet.description,\n      customUrl: snippet.customUrl || \"\",\n      country: snippet.country || \"\",\n      profileAge: profileAge,\n      subscriberCount: parseInt(stats.subscriberCount || \"0\"),\n      viewCount: parseInt(stats.viewCount || \"0\"),\n      videoCount: parseInt(stats.videoCount || \"0\"),\n      thumbnail: snippet.thumbnails?.high?.url || \"\",\n    }\n  };\n});\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3744, 384],
+      "id": "4f33dec2-4ace-465e-b0c6-ddeaeca216e6",
+      "name": "separate useful info"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [2416, 1360],
+      "id": "f9b54fd2-7c31-473f-bf98-91a9d5484cbb",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "mWJH6jVsPopSZNDZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=specific domain:{{ $('On form submission').all()[0].json[\"what is the domain you want to search for?\"] }}\nchannel Description: {{ $('set channel details').item.json.signature }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an intelligent AI assistant who classifies tiktok channels. You will be given a specific domain and the description of the channel. You need to classify the channel on the basis of how relevant the channel is to the specific domain.There are three categories: \"S\",\"A\",\"B\"\nIf the description mentions that the channel focuses only on the specific domain then the chanel falls in \"S\" category.\nIf the description mentions that the channel focuses on the specific domain as well as other related things then the channel is in \"A\" category.\nIf the Description does not mention anything about the specific domain,or mentions an unrelated domain then the channel is i \"B\" category. \nYou always need to classify the channel as one of the three categories.\n##output format\noutput the category and the reason for classification."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [2448, 1104],
+      "id": "8cbb7e14-1824-415a-ba5e-b8a4e76d7d72",
+      "name": "decide relevance"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/channels?part=statistics,snippet&id={{ $json.channelId }}&key=[YOUR_YOUTUBE_KEY_HERE]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3568, 384],
+      "id": "c17c522f-3aaf-4a8d-9ad6-7c9a61e64b9a",
+      "name": "get channel details"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tLVRE8Wn9xS6i4NFWkJDw6TjyG2jT1KzY-4_GMafXsY",
+          "mode": "list",
+          "cachedResultName": "Content creators ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tLVRE8Wn9xS6i4NFWkJDw6TjyG2jT1KzY-4_GMafXsY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tLVRE8Wn9xS6i4NFWkJDw6TjyG2jT1KzY-4_GMafXsY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Platform": "tiktok",
+            "channel name": "={{ $json.channel_name }}",
+            "number of videos": "={{ $json.videos }}",
+            "location": "abc",
+            "relevance": "={{ $json.relevance }}",
+            "Domain": "={{ $json.domain }}",
+            "subscribers category": "={{ $json.subscriberCategory }}",
+            "contact info": "={{$json.email}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel name",
+              "displayName": "channel name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subscribers category",
+              "displayName": "subscribers category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "number of videos",
+              "displayName": "number of videos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact info",
+              "displayName": "contact info",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "relevance",
+              "displayName": "relevance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [1296, 752],
+      "id": "90a7a9f0-ea7c-45ff-9837-5bf9321220f9",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GOOGLE_SHEET_KEY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"category\": \"A\",\n\t\"reason\": \"The description mentions tech which is relevant to headphones\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [2592, 1312],
+      "id": "1792f8d6-45a5-4eb4-afd2-69f82724b733",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const input = item.json;\n\nconst name = input.user?.uniqueId || '';\nconst nickName = input.user?.nickname || '';\nconst signature = input.user?.signature || '';\nconst bioLink = input.user?.bioLink || '';  // Still might be empty\nconst fans = input.stats?.followerCount || 0;\nconst follows = input.stats?.followingCount || 0;\nconst video = input.stats?.videoCount || 0;\n\nconst timestamp = input.user?.createTime;\nlet profileAge = 'Unknown';\n\nif (typeof timestamp === 'number') {\n  const createdDate = new Date(timestamp * 1000);\n  const now = new Date();\n  const diff = now - createdDate;\n  const days = Math.floor(diff / (1000 * 60 * 60 * 24));\n  profileAge = `${days} days`;\n}\n\nreturn {\n  json: {\n    name,\n    nickName,\n    signature,\n    bioLink,\n    fans,\n    follows,\n    video,\n    profileAge\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 1120],
+      "id": "50f6a21c-fc21-4e35-84df-6ad1fc0ff0d1",
+      "name": "set channel details"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [4480, 624],
+      "id": "c2881d71-7105-40ef-b58f-1d501860ba69",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "mWJH6jVsPopSZNDZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=specific domain:{{ $('On form submission').all()[0].json[\"what is the domain you want to search for?\"] }}\nchannel Description: {{ $('separate useful info').item.json.description }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an intelligent AI assistant who classifies tiktok channels. You will be given a specific domain and the description of the channel. You need to classify the channel on the basis of how relevant the channel is to the specific domain.There are three categories: \"S\",\"A\",\"B\"\nIf the description mentions that the channel focuses only on the specific domain then the chanel falls in \"S\" category.\nIf the description mentions that the channel focuses on the specific domain as well as other related things then the channel is in \"A\" category.\nIf the Description does not mention anything about the specific domain,or mentions an unrelated domain then the channel is i \"B\" category. \nYou always need to classify the channel as one of the three categories.\n##output format\noutput the category and the reason for classification."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [4672, 272],
+      "id": "693fee1d-059c-42e1-b8af-039f81b12586",
+      "name": "decide relevance1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1tLVRE8Wn9xS6i4NFWkJDw6TjyG2jT1KzY-4_GMafXsY",
+          "mode": "list",
+          "cachedResultName": "Content creators ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tLVRE8Wn9xS6i4NFWkJDw6TjyG2jT1KzY-4_GMafXsY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1tLVRE8Wn9xS6i4NFWkJDw6TjyG2jT1KzY-4_GMafXsY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "channel name": "={{ $json.channelName }}",
+            "number of videos": "={{ $json.videoCount }}",
+            "location": "={{ $json.location }}",
+            "relevance": "={{ $json.relevance }}",
+            "Domain": "={{ $('On form submission').all()[0].json[\"what is the domain you want to search for?\"] }}",
+            "subscribers category": "={{ $json.subscriberCategory }}",
+            "contact info": "={{ $json.contactInfo }}",
+            "Platform": "youtube"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Domain",
+              "displayName": "Domain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "channel name",
+              "displayName": "channel name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subscribers category",
+              "displayName": "subscribers category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "number of videos",
+              "displayName": "number of videos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "location",
+              "displayName": "location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contact info",
+              "displayName": "contact info",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "relevance",
+              "displayName": "relevance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [3936, 48],
+      "id": "2406083c-6ddc-4d67-9546-089ed202b123",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GOOGLE_SHEET_KEY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"category\": \"A\",\n\t\"reason\": \"The description mentions tech which is relevant to headphones\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [4704, 576],
+      "id": "b55221a0-9d5e-4eca-80b6-e4dc6a2b290c",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "574aced0-dec2-4dcd-9ce3-adfca2306594",
+              "leftValue": "={{ $json.output.content_creator }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [4256, 384],
+      "id": "6008a789-0ff6-4d15-bda1-ab58c5ab37de",
+      "name": "is content creator"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through each item from the previous node\nreturn items.map(item => {\n  const subs =$('set channel details').first().json.fans;\n\n  let category;\n  if (subs < 1000) {\n    category = \"below 1k\";\n  } else if (subs < 5000) {\n    category = \"1k- 5k\";\n  } else if (subs < 10000) {\n    category = \"5k- 10k\";\n  } else if (subs < 20000) {\n    category = \"10k- 20k\";\n  } else if (subs < 50000) {\n    category = \"20k- 50k\";\n  } else {\n    category = \"above 50k\";\n  }\n\n  // Add the new field to the item's JSON\n  return {\n    json: {\n      //...item.json,\n      relevance:$input.first().json.relevanceCategory ,\n      subscriberCategory: category,\n      domain:$('On form submission').first().json[\"what is the domain you want to search for?\"],\n      channel_name: $('set channel details').first().json.name,\n      videos:$('set channel details').first().json.video,\n      email: item.json.extractedEmail\n      \n      \n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3152, 1104],
+      "id": "fea8cbf8-00d4-4040-b776-86516ff99a5f",
+      "name": "set Subscriber category"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mergedItems = [];\n\nfor (let i = 0; i < items.length - 1; i++) {\n  const current = items[i].json;\n  const next = items[i + 1]?.json;\n\n  if (current.signature && next.output?.category) {\n    // Merge current item with relevance data from next item\n    mergedItems.push({\n      json: {\n        ...current,\n        relevanceCategory: next.output.category,\n        relevanceReason: next.output.reason,\n        extractedEmail: (current.signature.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-z]{2,}/) || [null])[0]\n      }\n    });\n\n    i++; // Skip the next item since it's already merged\n  }\n}\n\nreturn mergedItems;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2992, 1104],
+      "id": "45cafb31-edc1-4d46-b5e5-47ff197a2c82",
+      "name": "extract emails"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [2832, 1088],
+      "id": "a0cac2af-b38e-4425-8f06-07162bc2fc6f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=name:{{ $json.name}}\nbio signature:{{ $json.description }}\nfans:{{ $json.subscriberCount }}\nview count:{{ $json.viewCount }}\nvideoCount:{{ $json.videoCount }}\nprofileAge:{{ $json.profileAge }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=you are a helpful AI assistant who can distinguish content creaters from other social media users. The user prompt contains information about a tiktok profile. you need to decide if the person is a content creator or not. Then they can be sponsored to help advertise  a product.if the profile only sells a specific product, they can not be sponsored and hence they do not count as content creators. Don't generalise cryptic names as brand names, content generators can also have unusual names.\n##output format:\njson object with key named content creator and value being a boolean value that tells if the profile belongs to a content creator or not. another key named reason that gives short eplanation for the verdict"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name:American Standard Dog Training\nbio signature:American Standard K9 offers world-class dog training backed by over 20 years of experience training police dogs for both the street and competition. Our real-world experience allows us to deliver proven, practical results for dog owners—regardless of your dog’s age, breed, or behavioral history. Through our DIYK9 online courses and training videos, we give you the tools and step-by-step guidance to train your dog or puppy at home to be the best they can be. From foundational obedience and leash manners to solving common behavioral issues, our easy-to-follow programs are designed to help you build a calm, obedient, and well-balanced companion.\nWhether you're just starting with a new puppy or looking to correct long-standing issues, DIYK9 gives you access to professional-level training that works—in real homes, with real dogs.\n\nfans:2410000\nview count:1162479557\nvideoCount:1636\nprofileAge:5.8 years"
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=[\n  {\n    \"output\": {\n      \"content_creator\": false,\n      \"reason\": \"The profile's name and detailed bio clearly indicate it is a business selling specific services (dog training) and products (online courses/training videos). While they produce a lot of video content, its primary purpose is to market and sell their offerings, rather than to create general content for potential sponsorships.\"\n    }\n  }\n]"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name:\"rashnakutwaroo\" nickname:\"RASHNA\" bio signature:\"📧 Rashna.kutwaroo@yahoo.com\" bio link: {\n      \"link\": \"https://www.shopltk.com/explore/Rashna_Kutwaroo?utm_campaign=creator_shop_share_template_flow&utm_source=ioscreatorapp\",\n      \"risk\": 3\n    }fans:1300000 follower count:684 videoCount:2619 profileAge:\"2464 days\""
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=[\n  {\n    \"output\": {\n      \"content_creator\": true,\n      \"reason\": \"The profile has a personal name, a very high number of fans, and a large video count, indicating consistent content creation over a long period. The email in the bio suggests a willingness for collaborations, common for content creators.\"\n    }\n  }\n]\n"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name:\"bkfragrance1\" nickname:\"BKFragrance\"  bio signature:\"PR/Collaboration👇\\n📧 bkfragrance1@gmail.com\\nBarber Acc: @BarberKarl\" bio link:\n{\n\"link\": \n\"https://bks-decants.square.site/\",\n\"risk\": \n3\n}fans:28100 follower count:276 videoCount:159 profileAge:\"207 days\""
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "=[   {     \"output\": {       \"content_creator\": true,       \"reason\": \"The profile explicitly states 'PR/Collaboration' and provides a contact email, indicating an interest in working with brands. The consistent video count (159 videos in 207 days) and a significant number of 'fans' (28100) suggest active content creation. While 'fragrance' is in the name, it implies a content niche (reviews, recommendations) rather than solely selling a specific product.\"     }   } ]"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=name:BEST PET CARE TIPS AND TRICKS bio signature:Pet care refers to the set of practices and responsibilities that are necessary for the proper care and well-being of pets. This can include various aspects such as providing adequate food and water, ensuring proper exercise and playtime, maintaining a clean and safe living environment, and providing regular health care and veterinary check-ups.\n\nPet care also involves building a strong bond and positive relationship with your pet through regular attention and affection. It's important to understand your pet's individual needs, behaviors, and preferences to create a comfortable and nurturing environment.\n\nProper pet care can have a significant impact on a pet's physical and emotional health, as well as their overall quality of life. It is essential for pet owners to take their pet's care seriously and make sure that they are providing the best possible care to their furry companions. And we will help you for everything you need about pet care......\n fans:0 view count:110 videoCount:4 profileAge:2.4 years"
+            },
+            {
+              "type": "AIMessagePromptTemplate",
+              "message": "[   {     \"output\": {       \"content_creator\": false,       \"reason\": \"The profile has zero fans, only 4 videos, and a very low view count (110) despite being 2.4 years old. This indicates a complete lack of audience and active content creation, making it unsuitable for sponsorships.\"     }   } ]"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [3936, 384],
+      "id": "a572582c-ee14-4db7-87ad-db64563feb00",
+      "name": "distinguish content creators1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const uniqueIds = new Set();\n\n// Loop through each item\nfor (const item of items) {\n  const csv = item.json.channelIdsCsv || '';\n  const ids = csv.split(',').map(id => id.trim());\n\n  for (const id of ids) {\n    if (id) uniqueIds.add(id);\n  }\n}\n\n// Convert the Set back to an array of n8n items\nreturn Array.from(uniqueIds).map(id => ({\n  json: {\n    channelId: id\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2720, 240],
+      "id": "ff9f0578-7d30-4f75-b77b-28cf7213c6bc",
+      "name": "extract unique ids"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop through each item from the previous node\nconst emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/g;\n\nreturn items.map(item => {\n  const subs =$('separate useful info').first().json.subsricberCount;\n\n  let category;\n  if (subs < 1000) {\n    category = \"below 1k\";\n  } else if (subs < 5000) {\n    category = \"1k- 5k\";\n  } else if (subs < 10000) {\n    category = \"5k- 10k\";\n  } else if (subs < 20000) {\n    category = \"10k- 20k\";\n  } else if (subs < 50000) {\n    category = \"20k- 50k\";\n  } else {\n    category = \"above 50k\";\n  }\n const description= $('separate useful info').first().json.description || \"\";\n  const emails = description.match(emailRegex) || [];\n  // Add the new field to the item's JSON\n  return {\n    json: {\n      ...item.json,\n      subscriberCategory: category,\n      extractedEmails: emails\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4448, 208],
+      "id": "fe96eb3b-2b79-45b4-8acc-11c59978fbe4",
+      "name": "set Subscriber category and email"
+    },
+    {
+      "parameters": {
+        "formTitle": "trigger",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "what is the domain you want to search for?",
+              "placeholder": "e.g. perfumes",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [-928, 816],
+      "id": "a0766378-161d-4953-8fb4-0e6343f84f3a",
+      "name": "On form submission",
+      "webhookId": "a19991d9-f04c-4f72-9086-c796199c30a1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [4992, 208],
+      "id": "bf43c082-ee1f-4636-a76e-5b86c9c1ec52",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [736, 1104],
+      "id": "91697d4d-e83a-4979-8701-d7a7000e85c6",
+      "name": "Loop Over profiles",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "86eb758b-90ca-49fe-a18a-f3209dabdd63",
+              "leftValue": "={{ $json.output.content_creator }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2224, 1120],
+      "id": "e19396f3-b6c3-4cf6-b0b3-b58607e59b3f",
+      "name": "Is content creator"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bba8c0f4-47cd-4567-a7c0-2dd332a2cf9d",
+              "leftValue": "={{ $json.relevance }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [944, 768],
+      "id": "9bc26892-49a0-4017-bca1-3ba880d14a7d",
+      "name": "If content creator1"
+    },
+    {
+      "parameters": {
+        "jsCode": "if (items.length !== 2) {\n  // If not exactly 2 items, return no output\n  return [];\n}\n\n// Destructure the two input items\nconst [item1, item2] = items;\n\n// Merge their `.json` contents\nconst merged = {\n  ...item1.json,\n  ...item2.json,\n};\n\n// Return the merged object as a single item\nreturn [\n  {\n    json: merged\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [5104, 192],
+      "id": "d582356d-a430-42b9-b74f-c5635eee3ea1",
+      "name": "combine merged items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 1: Deduplicate by channelId\nconst seen = new Set();\nconst uniqueItems = items.filter(item => {\n  const id = item.json.channelId;\n  if (!id || seen.has(id)) return false;\n  seen.add(id);\n  return true;\n});\n\n// Step 2: Transform to desired output format\nreturn uniqueItems.map(item => {\n  const data = item.json;\n\n  return {\n    json: {\n      channelName: data.name || null,\n      subscriberCategory: data.subscriberCategory || null,\n      videoCount: data.videoCount || null,\n      location: data.country || null,\n      contactInfo: (data.extractedEmails || []).join(', ') || 'Not found',\n      relevance: data.output?.category || null\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3520, 48],
+      "id": "590cb390-8665-4610-b15c-b82dc96aec63",
+      "name": "set fields"
+    },
+    {
+      "parameters": {
+        "content": "## Get relevant profile urls \nuses apify tiktok actor to search for relevenat profiles",
+        "height": 432,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-32, 1008],
+      "id": "076caf11-42c0-42ad-a2a5-3dd33c712bfd",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## get details of each profile and separate content creators \nuses another tiktok actor to get the details of the searched profiles and ",
+        "height": 272,
+        "width": 1088,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1104, 992],
+      "id": "bc519786-3b93-436b-9662-412e7cae7715",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## set useful information about profiles \nthese nodes set the subscriber category, relevance category,email and other important fields",
+        "height": 272,
+        "width": 864,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [2432, 992],
+      "id": "02cd8142-478a-47e2-ba9e-3d4a56c4903d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Get relevant channel ids\nuses apify tiktok actor to search for relevenat profiles",
+        "height": 432,
+        "width": 624
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [2400, 192],
+      "id": "c9672897-1654-4175-acef-03a1cb1cc3ea",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## get details of each profile and separate content creators \nuses another tiktok actor to get the details of the searched profiles and ",
+        "height": 272,
+        "width": 1088,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [3280, 256],
+      "id": "add33c9e-afae-4360-b01c-d8c96a18b70a",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## set useful information about profiles \nthese nodes set the subscriber category, relevance category,email and other important fields",
+        "height": 272,
+        "width": 864,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [4400, 128],
+      "id": "0cf2b7b0-aac0-4a48-b109-748f0e61dbb4",
+      "name": "Sticky Note7"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "generate hashtags",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search tiktok": {
+      "main": [
+        [
+          {
+            "node": "get tiktok results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get tiktok results": {
+      "main": [
+        [
+          {
+            "node": "Aggregate search results1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate hashtags": {
+      "main": [
+        [
+          {
+            "node": "format output1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search youtube": {
+      "main": [
+        [
+          {
+            "node": "extract channel IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format output": {
+      "main": [
+        [
+          {
+            "node": "Loop Over search queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate search query": {
+      "main": [
+        [
+          {
+            "node": "format output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over search queries": {
+      "main": [
+        [
+          {
+            "node": "extract unique ids",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "search youtube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "generate search query",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format output1": {
+      "main": [
+        [
+          {
+            "node": "search tiktok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate search results1": {
+      "main": [
+        [
+          {
+            "node": "extract profile urls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract profile urls": {
+      "main": [
+        [
+          {
+            "node": "Loop Over profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "run profile actor": {
+      "main": [
+        [
+          {
+            "node": "get profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get profiles": {
+      "main": [
+        [
+          {
+            "node": "set channel details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "distinguish content creators": {
+      "main": [
+        [
+          {
+            "node": "Is content creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "distinguish content creators",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "distinguish content creators",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "generate search query",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract channel IDs": {
+      "main": [
+        [
+          {
+            "node": "Loop Over search queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "distinguish content creators1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "distinguish content creators1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "loop over channels": {
+      "main": [
+        [
+          {
+            "node": "set fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "get channel details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "separate useful info": {
+      "main": [
+        [
+          {
+            "node": "distinguish content creators1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "set Subscriber category and email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "decide relevance",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "decide relevance": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "get channel details": {
+      "main": [
+        [
+          {
+            "node": "separate useful info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "generate search query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "decide relevance",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set channel details": {
+      "main": [
+        [
+          {
+            "node": "distinguish content creators",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "decide relevance1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "decide relevance1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "decide relevance1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [[]]
+    },
+    "is content creator": {
+      "main": [
+        [
+          {
+            "node": "decide relevance1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "loop over channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set Subscriber category": {
+      "main": [
+        [
+          {
+            "node": "Loop Over profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract emails": {
+      "main": [
+        [
+          {
+            "node": "set Subscriber category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "extract emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "distinguish content creators1": {
+      "main": [
+        [
+          {
+            "node": "is content creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract unique ids": {
+      "main": [
+        [
+          {
+            "node": "loop over channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set Subscriber category and email": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "generate hashtags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "combine merged items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over profiles": {
+      "main": [
+        [
+          {
+            "node": "If content creator1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "run profile actor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is content creator": {
+      "main": [
+        [
+          {
+            "node": "decide relevance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If content creator1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "combine merged items": {
+      "main": [
+        [
+          {
+            "node": "loop over channels",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "368e606d-dc07-4209-b37c-6c57908f394a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b2f980775906dbf909a914596f871c2861b61f02cc89000086525d58efb63b8f"
+  },
+  "id": "P8UFazGomRkLxyfi",
+  "tags": []
+}
