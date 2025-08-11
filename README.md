@@ -17,7 +17,7 @@ The workflow is composed of **four major sections**, each implemented for both p
 3. **Scoring & Metric Calculation**
 4. **Google Sheets Output**
 
-> ❗There are **no shared processing sections** except for the initial `domain` input — each platform runs its complete processing pipeline independently. 
+> ❗There are **no shared processing sections** except for the initial `domain` input — each platform runs its complete processing pipeline independently.
 
 ---
 
@@ -160,6 +160,17 @@ Each platform has its own relevance scoring model using **Gemini 2.0 flash**.
 - Apify actors are limited to 2 profiles per hashtag (can be increased at higher cost).
 - Relevance scoring is based on available text; video content is not analyzed directly.
 - Contact info is often unavailable or hidden, especially on TikTok.
+
+---
+
+## Configuration
+
+This workflow requires the following environment variables to be set in `.env` or in n8n credentials:
+
+| Variable Name    | Description         | Example Value           |
+| ---------------- | ------------------- | ----------------------- |
+| YOUR_APIFY_KEY   | API token for Apify | `your-apify-token-here` |
+| YOUR_YOUTUBE_KEY | API key for youtube | `your-youtube-key-here` |
 
 ---
 
